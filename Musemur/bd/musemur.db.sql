@@ -25,7 +25,7 @@ nom_mus varchar(30),
 loc_mus varchar(30),
 ubi_mus varchar(100),
 hor_mus varchar(10),
-imh_mus blob
+img_mus blob
 );
 
 drop table if exists reservas;
@@ -54,7 +54,9 @@ drop table if exists admin;
 create table admin (
 id_admin INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 id_museo INT UNSIGNED,
-FOREIGN KEY (id_museo) references museos(id_museo));
+FOREIGN KEY (id_museo) references museos(id_museo) on delete cascade,
+FOREIGN KEY (id_admin) references usuarios(id_usuario)
+on delete cascade);
 
 -- Crear un disparador para validar el rol del administrador
 DELIMITER $$
@@ -63,7 +65,12 @@ BEFORE INSERT ON admin
 FOR EACH ROW
 BEGIN
     DECLARE admin_role ENUM('user', 'admin');
-    SELECT rol INTO admin_role FROM usuarios WHERE id_usuario = NEW.id_admin;
+SELECT 
+    rol
+INTO admin_role FROM
+    usuarios
+WHERE
+    id_usuario = NEW.id_admin;
     IF admin_role != 'admin' THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El administrador debe tener el rol de admin';
     END IF;
@@ -72,8 +79,9 @@ DELIMITER ;
 
 -- Usuario Demo
 
-select * from usuarios;
-
-insert into usuarios values ('adrian', 'tudela', 654879856, 'demo@gmail.com', '12345678r', 'ContraseñaDemo08','admin');
+insert into usuarios values (0,'adrian', 'tudela', 654879856, 'demo@gmail.com', '12345678r', 'ContraseñaDemo08','admin');
+SELECT * from usuarios;
 
 commit;
+
+alter table usuarios ;
