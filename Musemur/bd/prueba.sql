@@ -1,6 +1,6 @@
-drop database if exists prueba;
-create database prueba;
-use prueba;
+drop database if exists musemur;
+create database musemur;
+use musemur;
 
 drop table if exists usuarios;
 
@@ -11,7 +11,7 @@ ape_usu varchar(40),
 tel_usu int(9),
 email_usu varchar(20),
 dni_usu varchar(9) not null unique,
-contraseña_usu varchar(20) not null check(length(contraseña)>=8 and
+contraseña varchar(20) not null check(length(contraseña)>=8 and
 										contraseña regexp '[0-9]' and
 										contraseña regexp '[A-Z]' and
 										contraseña regexp '[a-z]'),
@@ -69,3 +69,11 @@ BEGIN
     END IF;
 END$$
 DELIMITER ;
+
+-- Usuario Demo
+
+select * from usuarios;
+
+insert into usuarios values ('adrian', 'tudela', 654879856, 'demo@gmail.com', '12345678r', 'ContraseñaDemo08','admin');
+
+commit;
