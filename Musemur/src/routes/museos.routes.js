@@ -5,10 +5,10 @@ const router = Router()
 
 router.get("/museos", getMuseos);
 
-router.post("/museos", getMuseos);
+router.post("/museos", postMuseos);
 
-router.put("/museos", getMuseos);
+router.put("/museos", putMuseos);
 
-router.delete("/museos", getMuseos);
+router.delete("/museos", deleteMuseos);
 
 export default router

@@ -5,10 +5,10 @@ const router = Router()
 
 router.get("/chatbox", getChatbox);
 
-router.post("/chatbox", getChatbox);
+router.post("/chatbox", postChatbox);
 
-router.put("/chatbox", getChatbox);
+router.put("/chatbox", putChatbox);
 
-router.delete("/chatbox", getChatbox);
+router.delete("/chatbox", deleteChatbox);
 
 export default router

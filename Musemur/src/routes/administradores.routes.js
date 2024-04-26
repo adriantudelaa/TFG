@@ -5,10 +5,10 @@ const router = Router()
 
 router.get("/admin", getAdmin);
 
-router.post("/admin", getAdmin);
+router.post("/admin", postAdmin);
 
-router.put("/admin", getAdmin);
+router.put("/admin", putAdmin);
 
-router.delete("/admin", getAdmin);
+router.delete("/admin", deleteAdmin);
 
 export default router

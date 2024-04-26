@@ -5,10 +5,10 @@ const router = Router()
 
 router.get("/reservas", getReservas);
 
-router.post("/reservas", getReservas);
+router.post("/reservas", postReservas);
 
-router.put("/reservas", getReservas);
+router.put("/reservas", putReservas);
 
-router.delete("/reservas", getReservas);
+router.delete("/reservas", deleteReservas);
 
 export default router

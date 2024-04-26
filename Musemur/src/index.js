@@ -7,6 +7,8 @@ import chatboxRoutes from "./routes/chatbox.routes.js"
 
 const app = express()
 
+app.use(express.json())
+
 app.use(usuariosRoutes)
 app.use(museosRoutes)
 app.use(reservasRoutes)
