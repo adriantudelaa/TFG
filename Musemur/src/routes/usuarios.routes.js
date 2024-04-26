@@ -1,9 +1,13 @@
 import { Router } from "express"
-import {getUsuarios} from "../controllers/usuarios.controller.js"
-import {postUsuarios} from "../controllers/usuarios.controller.js"
-import {putUsuarios} from "../controllers/usuarios.controller.js"
-import {deleteUsuarios} from "../controllers/usuarios.controller.js"
-import {loginUser} from "../controllers/usuarios.controller.js"
+import {
+getUsuarios,
+postUsuarios,
+putUsuarios,
+deleteUsuarios,
+loginUser,
+requestPasswordReset,
+resetPassword
+} from "../controllers/usuarios.controller.js";
 
 const router = Router()
 
@@ -17,4 +21,7 @@ router.delete("/usuarios", deleteUsuarios);
 
 router.post('/login', loginUser);
 
+router.post('/request-password-reset', requestPasswordReset);
+
+router.post('/reset-password', resetPassword);
 export default router

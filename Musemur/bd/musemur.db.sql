@@ -15,7 +15,9 @@ contraseña varchar(20) not null check(length(contraseña)>=8 and
 										contraseña regexp '[0-9]' and
 										contraseña regexp '[A-Z]' and
 										contraseña regexp '[a-z]'),
-rol ENUM('user','admin'));
+rol ENUM('user','admin'),
+resetPasswordToken VARCHAR(255),
+resetPasswordExpires BIGINT);
 
 drop table if exists museos;
 
@@ -79,7 +81,7 @@ DELIMITER ;
 
 -- Usuario Demo
 
-insert into usuarios values (0,'adrian', 'tudela', 654879856, 'demo@gmail.com', '12345678r', 'ContraseñaDemo08','admin');
+insert into usuarios values (0,'adrian', 'tudela', 654879856, 'demo@gmail.com', '12345678r', 'ContraseñaDemo08','admin', null, null);
 SELECT * from usuarios;
 
 commit;
