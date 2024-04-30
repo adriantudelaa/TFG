@@ -1,27 +1,24 @@
 import { Router } from "express"
 import {
-getUsuarios,
-postUsuarios,
-putUsuarios,
-deleteUsuarios,
-loginUser,
-requestPasswordReset,
-resetPassword
+seeUsers,
+createUser,
+updateUserData,
+updateUserPswrd,
+deleteUser,
+loginUser
 } from "../controllers/usuarios.controller.js";
 
 const router = Router()
 
-router.get("/usuarios", getUsuarios);
+router.get("/usuarios", seeUsers);
 
-router.post("/usuarios", postUsuarios);
+router.post("/usuarios", createUser);
 
-router.put("/usuarios", putUsuarios);
+router.put("/usuariosData", updateUserData);
 
-router.delete("/usuarios", deleteUsuarios);
+router.put("/usuariosPswrd", updateUserPswrd);
+
+router.delete("/usuarios", deleteUser);
 
 router.post('/login', loginUser);
-
-router.post('/request-password-reset', requestPasswordReset);
-
-router.post('/reset-password', resetPassword);
 export default router

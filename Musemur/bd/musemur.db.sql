@@ -5,50 +5,49 @@ use musemur;
 drop table if exists usuarios;
 
 create table usuarios (
-id_usuario INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, 
-nom_usu varchar(20)not null,
-ape_usu varchar(40),
-tel_usu int(9),
-email_usu varchar(20),
-dni_usu varchar(9) not null unique,
-contraseña varchar(20) not null check(length(contraseña)>=8 and
-										contraseña regexp '[0-9]' and
-										contraseña regexp '[A-Z]' and
-										contraseña regexp '[a-z]'),
-rol ENUM('user','admin'),
-resetPasswordToken VARCHAR(255),
-resetPasswordExpires BIGINT);
+id_user INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, 
+user_first_name varchar(30)not null,
+user_surname varchar(40) not null,
+username varchar(255) not null,
+user_phone int(9),
+user_email varchar(50),
+user_dni varchar(9) not null unique,
+user_pswrd varchar(20) not null check(length(user_pswrd)>=8 and
+										user_pswrd regexp '[0-9]' and
+										user_pswrd regexp '[A-Z]' and
+										user_pswrd regexp '[a-z]'),
+user_rol boolean);
 
 drop table if exists museos;
 
 create table museos (
 id_museo INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-nom_mus varchar(30),
-loc_mus varchar(30),
-ubi_mus varchar(100),
-hor_mus varchar(10),
-img_mus blob
+museum_name varchar(30),
+museum_city varchar(30),
+museum_loc varchar(100),
+museum_hour varchar(10),
+museum_img blob
 );
 
 drop table if exists reservas;
 
 create table reservas(
 id_reserva INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-museo_res varchar(15),
-nom_res varchar(15),
-fech_reserva date,
-hora_res time,
-num_personas int (20),
-precio_res float
+reserva_museum varchar(15),
+reserva_name varchar(15),
+reserva_date date,
+reserva_hour time,
+reserva_people int (20),
+reserva_price float
 );
 
 drop table if exists chatbox;
 
 create table chatbox(
-id_pregunta INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+id_que INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 id_museo int unsigned,
-preg_cb varchar(50),
-res_cb varchar(50),
+cb_que varchar(50),
+cb_res varchar(50),
 FOREIGN KEY (id_museo) references museos(id_museo));
 
 drop table if exists admin;
@@ -57,7 +56,7 @@ create table admin (
 id_admin INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 id_museo INT UNSIGNED,
 FOREIGN KEY (id_museo) references museos(id_museo) on delete cascade,
-FOREIGN KEY (id_admin) references usuarios(id_usuario)
+FOREIGN KEY (id_admin) references usuarios(id_user)
 on delete cascade);
 
 -- Crear un disparador para validar el rol del administrador
@@ -66,24 +65,21 @@ CREATE TRIGGER check_admin_role
 BEFORE INSERT ON admin
 FOR EACH ROW
 BEGIN
-    DECLARE admin_role ENUM('user', 'admin');
+    DECLARE userrol boolean;
 SELECT 
     rol
-INTO admin_role FROM
+INTO userrol FROM
     usuarios
 WHERE
-    id_usuario = NEW.id_admin;
-    IF admin_role != 'admin' THEN
+    id_user = NEW.id_admin;
+    IF userrol != 1 THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El administrador debe tener el rol de admin';
     END IF;
 END$$
 DELIMITER ;
 
 -- Usuario Demo
+commit; 
+insert into usuarios values (0,'adrian', 'tudela', 'adriantudelaa', 654879856, 'adri40295@gmail.com', '24419446r', 'Demo2024',1);
+SELECT * from museos;
 
-insert into usuarios values (0,'adrian', 'tudela', 654879856, 'demo@gmail.com', '12345678r', 'ContraseñaDemo08','admin', null, null);
-SELECT * from usuarios;
-
-commit;
-
-alter table usuarios ;
