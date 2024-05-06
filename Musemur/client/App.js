@@ -1,8 +1,8 @@
-import React from "react";
-import AppNavigation from "./app/navigation/AppNavigation";
+import React, { useEffect, useState } from "react";
+import AppNavigation from "./app/navigation/AppNavigation.js";
+import { useFonts } from "expo-font"; 
 
-function App() {
+
+export default function App() {
     return <AppNavigation />;
 }
-
-export default App;

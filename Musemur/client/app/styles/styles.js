@@ -76,6 +76,12 @@ const loginStyles = StyleSheet.create({
         color: color.LIGHTPRIMARYCOLOR,
         fontSize: 14
         
+    },
+    txtTitle: {
+        fontWeight: 'bold',
+        color: color.PRIMARYCOLOR,
+        fontSize: 24,
+        fontFamily: 'SanFrancisco'
     }
 })
 
