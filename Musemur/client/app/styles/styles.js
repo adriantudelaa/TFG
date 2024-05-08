@@ -28,14 +28,32 @@ const loginStyles = StyleSheet.create({
         alignItems: 'flex-start',
     },
 
+    containerScroll: {
+        padding: 10,
+        alignItems: 'center',
+        flexGrow: 1
+    },
+
     logo: {
         paddingTop: 50,
         alignItems: 'center',
         paddingBottom: 50,
     },
 
+    logoRegister: {
+        alignItems: 'center',
+        paddingBottom: 50,
+    },
+
     btnMain: {
         width: 150,
+        marginRight: 10,
+        backgroundColor: color.BLUE,
+        borderRadius: 30,
+    },
+    
+    btnMainRegist: {
+        flex: 1,
         marginRight: 10,
         backgroundColor: color.BLUE,
         borderRadius: 30,
@@ -53,7 +71,8 @@ const loginStyles = StyleSheet.create({
         textAlign: 'center',
         fontSize: 17,
         color: color.WHITE,
-        paddingVertical: 15
+        paddingVertical: 15,
+        fontWeight: 'bold'
     },
 
     btnAdmin: {
@@ -67,8 +86,9 @@ const loginStyles = StyleSheet.create({
     },
 
     txtTransparent: {
+        padding: 5,
         color: color.LIGHTPRIMARYCOLOR,
-        fontSize: 14
+        fontSize: 15
     },
 
     txtBold: {
@@ -81,7 +101,7 @@ const loginStyles = StyleSheet.create({
         fontWeight: 'bold',
         color: color.PRIMARYCOLOR,
         fontSize: 24,
-        fontFamily: 'SanFrancisco'
+        paddingBottom: 20
     }
 })
 

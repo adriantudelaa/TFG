@@ -1,9 +1,9 @@
 import { Router } from "express"
-import {getChatbox} from "../controllers/chatbox.controllers.js"
+import {getChatboxQues} from "../controllers/chatbox.controllers.js"
 
 const router = Router()
 
-router.get("/chatbox", getChatbox);
+router.get("/chatbox", getChatboxQues);
 
 //router.post("/chatbox", postChatbox);
 
