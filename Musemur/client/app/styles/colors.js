@@ -1,6 +1,7 @@
 export default {
     PRIMARYCOLOR:'#377bff',
     SECONDARYCOLOR:'#ff5204',
+    ADMINPRIMARYCOLOR: '#005BBB',
     LIGHTPRIMARYCOLOR:'#90caf9',
     LIGHTSECONDARYCOLOR:'#ffcc80',
     WHITE: '#FFF',
