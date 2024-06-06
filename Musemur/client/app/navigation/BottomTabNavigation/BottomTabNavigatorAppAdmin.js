@@ -1,11 +1,11 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import colors from '../../styles/colors.js';
-import IconWithAnimationAdmin from '../IconAnimation/IconWithAnimationAdmin.js';
-import AdminsPrincipalScreen from '../../screens/AdminScreens/AdminsPrincipalScreen.js';
-import AdminProfileScreen from '../../screens/AdminScreens/AdminProfileScreen.js';
-import AdminReservasScreen from '../../screens/AdminScreens/AdminsReservasScreen.js';
-import ChatBoxAdminScreen from '../../screens/AdminScreens/ChatBoxAdminScreen.js';
+import colors from '@styles/colors.js';
+import IconWithAnimationAdmin from '@navigation/IconAnimation/IconWithAnimationAdmin.js';
+import AdminsPrincipalScreen from '@Screens/AdminScreens/AdminsPrincipalScreen.js';
+import ProfileScreen from '@Screens/UserScreens/ProfileScreen.js';
+import AdminReservasScreen from '@Screens/AdminScreens/AdminsReservasScreen.js';
+import AdminChatBotScreen from '@Screens/AdminScreens/AdminChatBotScreen.js';
 
 const Tab = createBottomTabNavigator();
 
@@ -16,8 +16,8 @@ export default function BottomTabNavigatorAppAdmin() {
                 tabBarIcon: ({ color, focused }) => (
                     <IconWithAnimationAdmin route={route} focused={focused} color={color} />
                 ),
-                tabBarActiveTintColor: "#377bff",
-                tabBarInactiveTintColor: "gray",
+                tabBarActiveTintColor: colors.PRIMARYCOLOR,
+                tabBarInactiveTintColor: colors.GRAY,
                 tabBarShowLabel: false,
                 tabBarStyle: [
                     {
@@ -30,8 +30,8 @@ export default function BottomTabNavigatorAppAdmin() {
         >
             <Tab.Screen name="Inicio" component={AdminsPrincipalScreen} />
             <Tab.Screen name="Gestor Reservas" component={AdminReservasScreen} />
-            <Tab.Screen name="Gestor ChatBox" component={ChatBoxAdminScreen} />
-            <Tab.Screen name="Perfil" component={AdminProfileScreen} />
+            <Tab.Screen name="Gestor ChatBox" component={AdminChatBotScreen} />
+            <Tab.Screen name="Perfil" component={ProfileScreen} />
         </Tab.Navigator>
     );
 }

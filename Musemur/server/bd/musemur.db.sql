@@ -25,21 +25,22 @@ id_museo INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 museum_name varchar(30),
 museum_city varchar(30),
 museum_loc varchar(100),
+museum_desc varchar(200),
 museum_hour varchar(10),
 museum_img blob
 );
 
 drop table if exists reservas;
 
-create table reservas(
+create table reservas (
 id_reserva INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-reserva_museum varchar(15),
-reserva_name varchar(15),
+id_user INT UNSIGNED,
+id_museo INT UNSIGNED,
 reserva_date date,
 reserva_hour time,
-reserva_people int (20),
-reserva_price float
-);
+reserva_people int(20),
+FOREIGN KEY (id_user) REFERENCES usuarios(id_user) ON DELETE CASCADE,
+FOREIGN KEY (id_museo) REFERENCES museos(id_museo) ON DELETE CASCADE);
 
 drop table if exists chatbox;
 

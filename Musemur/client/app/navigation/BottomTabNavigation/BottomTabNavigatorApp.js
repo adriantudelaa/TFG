@@ -1,10 +1,10 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import colors from '../../styles/colors.js';
-import IconWithAnimationUser from '../IconAnimation/IconWithAnimationUser.js';
-import PrincipalScreen from '../../screens/UserScreens/PrincipalScreen.js';
-import ReservasScreen from '../../screens/UserScreens/ReservasScreen.js';
-import ProfileScreen from '../../screens/UserScreens/ProfileScreen.js';
+import colors from '@styles/colors.js';
+import IconWithAnimationUser from '@navigation/IconAnimation/IconWithAnimationUser.js';
+import PrincipalScreen from '@Screens/UserScreens/PrincipalScreen.js';
+import ReservasScreen from '@Screens/UserScreens/ReservasScreen.js';
+import ProfileScreen from '@Screens/UserScreens/ProfileScreen.js';
 
 const Tab = createBottomTabNavigator();
 
@@ -15,8 +15,8 @@ export default function BottomTabNavigatorApp() {
                 tabBarIcon: ({ color, focused }) => (
                     <IconWithAnimationUser route={route} focused={focused} color={color} />
                 ),
-                tabBarActiveTintColor: "#377bff",
-                tabBarInactiveTintColor: "gray",
+                tabBarActiveTintColor: colors.PRIMARYCOLOR,
+                tabBarInactiveTintColor: colors.GRAY,
                 tabBarShowLabel: false,
                 tabBarStyle: [
                     {

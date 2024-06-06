@@ -1,9 +1,9 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import colors from '../../styles/colors.js';
-import IconWithAnimationLogIn from '../IconAnimation/IconWithAnimationLogIn.js';
-import LoginScreen from '../../screens/UserScreens/LogInScreen.js';
-import LoginScreenAdmins from '../../screens/AdminScreens/LogInScreenAdmins.js';
+import colors from '@styles/colors.js';
+import IconWithAnimationLogIn from '@navigation/IconAnimation/IconWithAnimationLogIn.js';
+import LoginScreen from '@Screens/UserScreens/LogInScreen.js';
+import LoginScreenAdmins from '@Screens/AdminScreens/LogInScreenAdmins.js';
 
 const Tab = createBottomTabNavigator();
 
@@ -14,8 +14,8 @@ export default function BottomTabNavigatorLogIn() {
                 tabBarIcon: ({ color, focused }) => (
                     <IconWithAnimationLogIn route={route} focused={focused} color={color} />
                 ),
-                tabBarActiveTintColor: "#377bff",
-                tabBarInactiveTintColor: "gray",
+                tabBarActiveTintColor: colors.PRIMARYCOLOR,
+                tabBarInactiveTintColor: colors.GRAY,
                 tabBarShowLabel: false,
                 tabBarStyle: [
                     {

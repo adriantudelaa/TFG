@@ -1,14 +1,13 @@
-import { Router } from "express"
-import {getChatboxQues} from "../controllers/chatbox.controllers.js"
+import { Router } from "express";
+import { getChatboxQues, getChatboxByQues, getChatboxByMuseum, postChatbox, putChatbox, deleteChatbox } from "../controllers/chatbox.controllers.js";
 
-const router = Router()
+const router = Router();
 
 router.get("/chatbox", getChatboxQues);
+router.post("/chatbox", postChatbox);
+router.put("/chatbox", putChatbox);
+router.delete("/chatbox", deleteChatbox);
+router.post("/chatbox/question", getChatboxByQues);
+router.post("/chatbox/museum", getChatboxByMuseum);
 
-//router.post("/chatbox", postChatbox);
-
-//router.put("/chatbox", putChatbox);
-
-//router.delete("/chatbox", deleteChatbox);
-
-export default router
+export default router;

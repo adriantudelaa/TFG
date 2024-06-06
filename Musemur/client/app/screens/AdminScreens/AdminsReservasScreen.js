@@ -1,147 +1,151 @@
-import React, { useState } from "react";
-import { Text, View, Image, TouchableOpacity, FlatList, Modal, Alert } from "react-native";
+import React, { useState, useEffect } from "react";
+import { Text, View, Image, TouchableOpacity, ScrollView, Alert, RefreshControl } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { Icon } from "react-native-elements";
-import { Calendar } from "react-native-calendars";
+import { Dialog, Portal, Button } from 'react-native-paper';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import colors from "@styles/colors";
 import { header, ReservasAdminStyles } from "@styles/styles";
 
-// Componente funcional para la pantalla de reservas del administrador
 const AdminReservationScreen = ({ navigation }) => {
-    // Estado inicial para las reservas, visibilidad del modal y reserva seleccionada
-    const [reservas, setReservas] = useState([
-        { id: '1', museo: 'Museo 1', fecha: '2023-06-01', detalles: 'Detalle de la reserva para Museo 1', usuario: { nombre: 'Juan', email: 'juan@example.com' }, cancelada: false },
-        { id: '2', museo: 'Museo 2', fecha: '2023-06-15', detalles: 'Detalle de la reserva para Museo 2', usuario: { nombre: 'María', email: 'maria@example.com' }, cancelada: false },
-        { id: '3', museo: 'Museo 3', fecha: '2023-07-01', detalles: 'Detalle de la reserva para Museo 3', usuario: { nombre: 'Pedro', email: 'pedro@example.com' }, cancelada: false },
-    ]);
+    const [reservas, setReservas] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
     const [reservaSeleccionada, setReservaSeleccionada] = useState(null);
+    const [refreshing, setRefreshing] = useState(false);
 
-    // Función para manejar la cancelación de una reserva
-    const handleCancelReserva = () => {
-        Alert.alert(
-            "Cancelar Reserva",
-            "¿Estás seguro de que deseas cancelar esta reserva?",
-            [
-                { text: "No", style: "cancel" },
-                { text: "Sí", onPress: cancelReserva }
-            ]
-        );
+    useEffect(() => {
+        fetchReservas();
+    }, []);
+
+    const fetchReservas = async () => {
+        try {
+            const token = await AsyncStorage.getItem('authToken');
+            const response = await axios.get('https://musemur-production.up.railway.app/api/reservas', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            setReservas(response.data);
+        } catch (error) {
+            console.error('Error al obtener reservas:', error);
+        }
     };
 
-    // Función para marcar una reserva como cancelada
-    const cancelReserva = () => {
-        const updatedReservas = reservas.map(reserva => {
-            if (reserva.id === reservaSeleccionada.id) {
-                return { ...reserva, cancelada: true };
-            }
-            return reserva;
-        });
-
-        setReservas(updatedReservas);
-        setModalVisible(false);
-        setReservaSeleccionada(null);
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await fetchReservas();
+        setRefreshing(false);
     };
 
-    // Función para manejar la eliminación de una reserva
-    const handleDeleteReserva = () => {
-        Alert.alert(
-            "Borrar Reserva",
-            "¿Estás seguro de que deseas borrar esta reserva?",
-            [
-                { text: "No", style: "cancel" },
-                { text: "Sí", onPress: deleteReserva }
-            ]
-        );
+    const showDialog = (reserva) => {
+        setReservaSeleccionada(reserva);
+        setModalVisible(true);
     };
 
-    // Función para eliminar una reserva
-    const deleteReserva = () => {
-        setReservas(reservas.filter(reserva => reserva.id !== reservaSeleccionada.id));
-        setModalVisible(false);
-        setReservaSeleccionada(null);
+    const hideDialog = () => setModalVisible(false);
+
+    const confirmAction = (title, message, action) => {
+        Alert.alert(title, message, [
+            { text: "No", style: "cancel" },
+            { text: "Sí", onPress: action }
+        ]);
     };
 
-    // Función para renderizar cada reserva en la lista
-    const renderReserva = ({ item }) => (
-        <TouchableOpacity
-            style={[ReservasAdminStyles.reservaItem, item.cancelada && ReservasAdminStyles.reservaCancelada]}
-            onPress={() => {
-                setModalVisible(true);
-                setReservaSeleccionada(item);
-            }}
-        >
-            <View style={ReservasAdminStyles.reservaInfo}>
-                <Text style={[ReservasAdminStyles.reservaText, item.cancelada && ReservasAdminStyles.textCancelado]}>Museo: {item.museo}</Text>
-                <Text style={[ReservasAdminStyles.reservaText, item.cancelada && ReservasAdminStyles.textCancelado]}>Fecha: {item.fecha}</Text>
-                {item.cancelada && <Text style={ReservasAdminStyles.canceladoLabel}>Cancelada</Text>}
+    const updateReserva = async (status) => {
+        try {
+            const token = await AsyncStorage.getItem('authToken');
+            await axios.put('https://musemur-production.up.railway.app/api/reservas', {
+                id_reserva: reservaSeleccionada.id,
+                cancelada: status
+            }, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            fetchReservas();
+            setModalVisible(false);
+        } catch (error) {
+            console.error('Error al actualizar la reserva:', error);
+        }
+    };
+
+    const deleteReserva = async () => {
+        try {
+            const token = await AsyncStorage.getItem('authToken');
+            await axios.delete('https://musemur-production.up.railway.app/api/reservas/admin', {
+                data: { id_reserva: reservaSeleccionada.id },
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            fetchReservas();
+            setModalVisible(false);
+        } catch (error) {
+            console.error('Error al eliminar la reserva:', error);
+        }
+    };
+
+    const groupedReservas = reservas.reduce((acc, reserva) => {
+        if (!acc[reserva.museo]) acc[reserva.museo] = [];
+        acc[reserva.museo].push(reserva);
+        return acc;
+    }, {});
+
+    const renderReserva = (item) => (
+        <TouchableOpacity key={item.id} style={[ReservasAdminStyles.card, item.cancelada && ReservasAdminStyles.reservaCancelada]} onPress={() => showDialog(item)}>
+            <View style={ReservasAdminStyles.cardHeader}>
+                <Image source={require('@assets/icon.png')} style={ReservasAdminStyles.image} />
+                <View style={ReservasAdminStyles.cardTextContainer}>
+                    <Text style={[ReservasAdminStyles.museumName, item.cancelada && ReservasAdminStyles.textCancelado]}>Fecha: {item.fecha}</Text>
+                    <Text style={[ReservasAdminStyles.date, item.cancelada && ReservasAdminStyles.textCancelado]}>Detalles: {item.detalles}</Text>
+                    {item.cancelada && <Text style={ReservasAdminStyles.canceladoLabel}>Cancelada</Text>}
+                </View>
+                <View style={ReservasAdminStyles.guestsContainer}>
+                    <Icon name="info" size={24} color={item.cancelada ? colors.DANGER : colors.PRIMARYCOLOR} />
+                </View>
             </View>
-            <Icon name="info" size={24} color={item.cancelada ? colors.DANGER : colors.PRIMARYCOLOR} />
         </TouchableOpacity>
     );
 
     return (
-        <View style={{ flex: 1, backgroundColor: colors.ADMINPRIMARYCOLOR }}>
-            <StatusBar translucent={true} style="light" />
+        <View style={{ flex: 1, backgroundColor: colors.WHITESECONDARY }}>
+            <StatusBar style="light" />
             <View style={header.header}>
                 <Icon name="menu" size={30} color="white" onPress={() => navigation.openDrawer()} />
                 <Text style={header.headerText}>Admin - Musemur</Text>
-                <Image source={require('@assets/icon.png')} style={header.logo} />
+                <Image source={require('@assets/icon-app.png')} style={header.logo} />
             </View>
-            <View style={ReservasAdminStyles.contentContainer}>
-                <Calendar
-                    onDayPress={(day) => {
-                        console.log('selected day', day);
-                    }}
-                    theme={{
-                        selectedDayBackgroundColor: colors.LIGHTPRIMARYCOLOR,
-                        todayTextColor: colors.PRIMARYCOLOR,
-                        arrowColor: colors.PRIMARYCOLOR,
-                    }}
-                    style={ReservasAdminStyles.calendar}
-                />
-                <View style={ReservasAdminStyles.reservasContainer}>
-                    <Text style={ReservasAdminStyles.sectionTitle}>Reservas</Text>
-                    <FlatList
-                        data={reservas}
-                        renderItem={renderReserva}
-                        keyExtractor={item => item.id}
-                    />
-                </View>
-            </View>
-
-            {reservaSeleccionada && (
-                <Modal
-                    animationType="slide"
-                    transparent={true}
-                    visible={modalVisible}
-                    onRequestClose={() => setModalVisible(false)}
-                >
-                    <View style={ReservasAdminStyles.modalContainer}>
-                        <View style={ReservasAdminStyles.modalView}>
-                            <Text style={ReservasAdminStyles.modalTitle}>Detalle de la Reserva</Text>
-                            <Text style={ReservasAdminStyles.modalText}>Museo: {reservaSeleccionada.museo}</Text>
-                            <Text style={ReservasAdminStyles.modalText}>Fecha: {reservaSeleccionada.fecha}</Text>
-                            <Text style={ReservasAdminStyles.modalText}>Detalles: {reservaSeleccionada.detalles}</Text>
-                            <Text style={ReservasAdminStyles.modalText}>Usuario: {reservaSeleccionada.usuario.nombre}</Text>
-                            <Text style={ReservasAdminStyles.modalText}>Email: {reservaSeleccionada.usuario.email}</Text>
-                            <View style={ReservasAdminStyles.buttonGroup}>
-                                {!reservaSeleccionada.cancelada && (
-                                    <TouchableOpacity style={[ReservasAdminStyles.button, ReservasAdminStyles.cancelButton]} onPress={handleCancelReserva}>
-                                        <Text style={ReservasAdminStyles.buttonText}>Cancelar Reserva</Text>
-                                    </TouchableOpacity>
-                                )}
-                                <TouchableOpacity style={[ReservasAdminStyles.button, ReservasAdminStyles.deleteButton]} onPress={handleDeleteReserva}>
-                                    <Text style={ReservasAdminStyles.buttonText}>Borrar Reserva</Text>
-                                </TouchableOpacity>
-                            </View>
-                            <TouchableOpacity style={[ReservasAdminStyles.button, ReservasAdminStyles.closeButton]} onPress={() => setModalVisible(false)}>
-                                <Text style={ReservasAdminStyles.buttonText}>Cerrar</Text>
-                            </TouchableOpacity>
-                        </View>
+            <ScrollView
+                contentContainerStyle={ReservasAdminStyles.container}
+                refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                }
+            >
+                <Text style={ReservasAdminStyles.title}>Reservas</Text>
+                {Object.keys(groupedReservas).map((museo, index) => (
+                    <View key={index} style={ReservasAdminStyles.museumSection}>
+                        <Text style={ReservasAdminStyles.museumTitle}>{museo}</Text>
+                        {groupedReservas[museo].map(renderReserva)}
                     </View>
-                </Modal>
-            )}
+                ))}
+                <Portal>
+                    <Dialog visible={modalVisible} onDismiss={hideDialog}>
+                        <Dialog.Title>Detalle de la Reserva</Dialog.Title>
+                        <Dialog.Content>
+                            {reservaSeleccionada && (
+                                <>
+                                    <Text style={ReservasAdminStyles.modalText}>Museo: {reservaSeleccionada.museo}</Text>
+                                    <Text style={ReservasAdminStyles.modalText}>Fecha: {reservaSeleccionada.fecha}</Text>
+                                    <Text style={ReservasAdminStyles.modalText}>Usuario: {reservaSeleccionada.usuario.nombre}</Text>
+                                    <Text style={ReservasAdminStyles.modalText}>Email: {reservaSeleccionada.usuario.email}</Text>
+                                    <Text style={ReservasAdminStyles.modalText}>Detalles: {reservaSeleccionada.detalles}</Text>
+                                </>
+                            )}
+                        </Dialog.Content>
+                        <Dialog.Actions>
+                            {!reservaSeleccionada?.cancelada && <Button onPress={() => confirmAction("Cancelar Reserva", "¿Estás segura de que deseas cancelar esta reserva?", () => updateReserva(1))}>Cancelar</Button>}
+                            {reservaSeleccionada?.cancelada && <Button onPress={() => confirmAction("Restaurar Reserva", "¿Estás segura de que deseas restaurar esta reserva?", () => updateReserva(0))}>Restaurar</Button>}
+                            <Button onPress={() => confirmAction("Borrar Reserva", "¿Estás segura de que deseas borrar esta reserva?", deleteReserva)}>Borrar</Button>
+                            <Button onPress={hideDialog}>Cerrar</Button>
+                        </Dialog.Actions>
+                    </Dialog>
+                </Portal>
+            </ScrollView>
         </View>
     );
 };

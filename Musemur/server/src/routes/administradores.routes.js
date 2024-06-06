@@ -1,14 +1,14 @@
-import { Router } from "express"
-import {getAdmin, createAdmin, deleteAdmin} from "../controllers/administradores.controllers.js"
+import { Router } from "express";
+import { getAdmin, getAdminByMuseum, updateAdmin, createAdmin } from "../controllers/administradores.controllers.js";
 
-const router = Router()
+const router = Router();
 
 router.get("/admin", getAdmin);
 
-router.post("/admin", createAdmin);
+router.put("/admin", updateAdmin);
 
-//router.put("/admin", putAdmin);
+router.post("/admin/museum", getAdminByMuseum);
 
-router.delete("/admin", deleteAdmin);
+router.post("/createAdmin", createAdmin);
 
-export default router
+export default router;

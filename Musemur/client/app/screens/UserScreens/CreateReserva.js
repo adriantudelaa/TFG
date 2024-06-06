@@ -1,141 +1,186 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
-import { Ionicons } from '@expo/vector-icons';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { loginStyles, CreateReservaStyles } from '@styles/styles';
 import colors from '@styles/colors';
-import { CreateReservaStyles } from '@styles/styles';
 
-// Componente funcional para crear una reserva
 const CreateReservaScreen = ({ navigation }) => {
-    // Estado inicial del componente
-    const [nombre, setNombre] = useState('');
-    const [apellidos, setApellidos] = useState('');
-    const [dni, setDni] = useState('');
-    const [personas, setPersonas] = useState('');
+    const [personas, setPersonas] = useState('1');
     const [fechaReserva, setFechaReserva] = useState(new Date());
+    const [horaReserva, setHoraReserva] = useState(null);
     const [museoSeleccionado, setMuseoSeleccionado] = useState('');
     const [mostrarDatePicker, setMostrarDatePicker] = useState(false);
     const [errores, setErrores] = useState({});
     const [enviado, setEnviado] = useState(false);
+    const [horasDisponibles, setHorasDisponibles] = useState([]);
+    const [museos, setMuseos] = useState([]);
 
-    // Maneja la creación de la reserva
-    const handleCreateReserva = () => {
-        // Validar los campos
+    useEffect(() => {
+        fetchMuseos();
+        generateHorasDisponibles();
+    }, []);
+
+    const fetchMuseos = async () => {
+        try {
+            const response = await axios.get('https://musemur-production.up.railway.app/api/museos');
+            setMuseos(response.data);
+        } catch (error) {
+            console.error('Error al obtener museos:', error);
+        }
+    };
+
+    const generateHorasDisponibles = () => {
+        const horas = [];
+        for (let hour = 9; hour <= 17; hour++) {
+            horas.push(`${hour}:00`);
+            horas.push(`${hour}:30`);
+        }
+        setHorasDisponibles(horas);
+    };
+
+    const validarCampos = () => {
+        const errores = {};
+        if (!museoSeleccionado) errores.museo = 'El museo es requerido';
+        if (!horaReserva) errores.hora = 'La hora es requerida';
+        if (!personas) errores.personas = 'El número de personas es requerido';
+        return errores;
+    };
+
+    const handleCreateReserva = async () => {
         const errores = validarCampos();
         setErrores(errores);
         setEnviado(true);
 
-        // Si no hay errores, crear la reserva y navegar a la pantalla de reservas
         if (Object.keys(errores).length === 0) {
-            const nuevaReserva = {
-                id: Math.random().toString(36).substr(2, 9),
-                museo: museoSeleccionado,
-                fecha: fechaReserva.toLocaleDateString(),
-                detalles: `Reserva para ${nombre} ${apellidos}`
-            };
-            navigation.navigate('Reservas', { nuevaReserva });
+            try {
+                const token = await AsyncStorage.getItem('authToken');
+                await axios.post('https://musemur-production.up.railway.app/api/reservas', {
+                    museum_name: museoSeleccionado,
+                    reserva_date: fechaReserva.toISOString().split('T')[0],
+                    reserva_hour: horaReserva,
+                    reserva_people: parseInt(personas, 10),
+                }, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                Alert.alert('Éxito', 'Reserva creada exitosamente');
+                navigation.navigate('Reservas');
+            } catch (error) {
+                console.error('Error al crear la reserva:', error);
+                Alert.alert('Error', 'Hubo un problema al crear la reserva');
+            }
         }
     };
 
-    // Validar los campos del formulario
-    const validarCampos = () => {
-        const errores = {};
-
-        if (!nombre) errores.nombre = 'El nombre es requerido';
-        if (!dni) {
-            errores.dni = 'El DNI es requerido';
-        } else if (!/^\d{8}[a-zA-Z]?$/.test(dni)) {
-            errores.dni = 'El DNI no es válido';
-        }
-        if (!personas) errores.personas = 'El número de personas es requerido';
-
-        return errores;
-    };
-
-    // Maneja el cambio de la fecha seleccionada
     const onChangeFecha = (event, selectedDate) => {
-        setFechaReserva(selectedDate || fechaReserva);
+        const currentDate = selectedDate || fechaReserva;
+        setFechaReserva(currentDate);
         setMostrarDatePicker(false);
+    };
+
+    const renderHorasDisponibles = () => {
+        return horasDisponibles.map((hora, index) => (
+            <TouchableOpacity
+                key={index}
+                style={[
+                    CreateReservaStyles.horaButton,
+                    horaReserva === hora && CreateReservaStyles.horaButtonSelected,
+                ]}
+                onPress={() => setHoraReserva(hora)}
+            >
+                <Text
+                    style={[
+                        CreateReservaStyles.horaButtonText,
+                        horaReserva === hora && { color: '#fff' },
+                    ]}
+                >
+                    {hora}
+                </Text>
+            </TouchableOpacity>
+        ));
     };
 
     return (
         <View style={CreateReservaStyles.container}>
-            {/* Botón para volver a la pantalla anterior */}
-            <TouchableOpacity onPress={() => navigation.goBack()} style={CreateReservaStyles.backButton}>
-                <Ionicons name='arrow-back' size={24} color={colors.PRIMARYCOLOR} />
-                <Text style={CreateReservaStyles.backButtonText}>Volver</Text>
-            </TouchableOpacity>
-            <Text style={CreateReservaStyles.title}>Crear Reserva</Text>
-            
-            {/* Campo para el nombre */}
-            <TextInput
-                style={[CreateReservaStyles.input, enviado && errores.nombre ? CreateReservaStyles.inputError : null]}
-                placeholder="Nombre"
-                value={nombre}
-                onChangeText={setNombre}
-            />
-            {enviado && errores.nombre && <Text style={CreateReservaStyles.errorText}>{errores.nombre}</Text>}
-
-            {/* Campo para los apellidos */}
-            <TextInput
-                style={CreateReservaStyles.input}
-                placeholder="Apellidos"
-                value={apellidos}
-                onChangeText={setApellidos}
-            />
-
-            {/* Campo para el DNI */}
-            <TextInput
-                style={[CreateReservaStyles.input, enviado && errores.dni ? CreateReservaStyles.inputError : null]}
-                placeholder="DNI"
-                value={dni}
-                onChangeText={setDni}
-                maxLength={9}
-            />
-            {enviado && errores.dni && <Text style={CreateReservaStyles.errorText}>{errores.dni}</Text>}
-
-            {/* Campo para el número de personas */}
-            <TextInput
-                style={[CreateReservaStyles.input, enviado && errores.personas ? CreateReservaStyles.inputError : null]}
-                placeholder="N. personas"
-                value={personas}
-                onChangeText={setPersonas}
-            />
-            {enviado && errores.personas && <Text style={CreateReservaStyles.errorText}>{errores.personas}</Text>}
-
-            {/* Selector de fecha */}
-            <TouchableOpacity onPress={() => setMostrarDatePicker(true)} style={CreateReservaStyles.dateButton}>
-                <Text style={CreateReservaStyles.dateButtonText}>
-                    {fechaReserva.toLocaleDateString()}
-                </Text>
-            </TouchableOpacity>
-
-            {mostrarDatePicker && (
-                <DateTimePicker
-                    value={fechaReserva}
-                    mode="date"
-                    display="default"
-                    onChange={onChangeFecha}
-                />
-            )}
-
-            {/* Selector del museo */}
-            <Picker
-                selectedValue={museoSeleccionado}
-                style={CreateReservaStyles.picker}
-                onValueChange={setMuseoSeleccionado}
-            >
-                <Picker.Item label="Seleccione un museo" value="" />
-                <Picker.Item label="Museo 1" value="museo1" />
-                <Picker.Item label="Museo 2" value="museo2" />
-                <Picker.Item label="Museo 3" value="museo3" />
-            </Picker>
-
-            {/* Botón para añadir la reserva */}
-            <TouchableOpacity style={CreateReservaStyles.addButton} onPress={handleCreateReserva}>
-                <Text style={CreateReservaStyles.addButtonText}>Añadir Reserva</Text>
-            </TouchableOpacity>
+            <StatusBar style="auto" />
+            <ScrollView contentContainerStyle={CreateReservaStyles.containerScroll}>
+                <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 10 }}>
+                    <View style={{ flex: 1 }}>
+                        <TouchableOpacity onPress={() => navigation.goBack()} style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <Icon name='arrow-back' size={30} color={colors.PRIMARYCOLOR} />
+                            <Text style={[loginStyles.btntxt, { color: colors.PRIMARYCOLOR, marginLeft: 5 }]}>Volver</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+                <View style={CreateReservaStyles.card}>
+                    <View style={CreateReservaStyles.cardHeader}>
+                        <Text style={CreateReservaStyles.cardTitle}>Crear Reserva</Text>
+                        <Text style={CreateReservaStyles.cardDescription}>Completa los siguientes campos para realizar tu reserva.</Text>
+                    </View>
+                    <View style={CreateReservaStyles.cardContent}>
+                        <View style={CreateReservaStyles.inputGroup}>
+                            <Text style={CreateReservaStyles.label}>Museo</Text>
+                            <Picker
+                                selectedValue={museoSeleccionado}
+                                style={[CreateReservaStyles.input, enviado && errores.museo ? CreateReservaStyles.inputError : null]}
+                                onValueChange={setMuseoSeleccionado}
+                            >
+                                <Picker.Item label="Seleccione un museo" value="" />
+                                {museos.map(museo => (
+                                    <Picker.Item key={museo.id_museo} label={museo.museum_name} value={museo.museum_name} />
+                                ))}
+                            </Picker>
+                            {enviado && errores.museo && <Text style={CreateReservaStyles.errorText}>{errores.museo}</Text>}
+                        </View>
+                        <View style={CreateReservaStyles.inputGroup}>
+                            <Text style={CreateReservaStyles.label}>Fecha de reserva</Text>
+                            <TouchableOpacity onPress={() => setMostrarDatePicker(true)} style={CreateReservaStyles.dateButton}>
+                                <Text style={CreateReservaStyles.dateButtonText}>
+                                    {fechaReserva.toLocaleDateString()}
+                                </Text>
+                            </TouchableOpacity>
+                            {mostrarDatePicker && (
+                                <DateTimePicker
+                                    value={fechaReserva}
+                                    mode="date"
+                                    display="default"
+                                    minimumDate={new Date()}
+                                    onChange={onChangeFecha}
+                                />
+                            )}
+                        </View>
+                        <View style={CreateReservaStyles.inputGroup}>
+                            <Text style={CreateReservaStyles.label}>Hora de reserva</Text>
+                            <View style={CreateReservaStyles.grid}>
+                                {renderHorasDisponibles()}
+                            </View>
+                            {enviado && errores.hora && <Text style={CreateReservaStyles.errorText}>{errores.hora}</Text>}
+                        </View>
+                        <View style={CreateReservaStyles.inputGroup}>
+                            <Text style={CreateReservaStyles.label}>Número de personas</Text>
+                            <Picker
+                                selectedValue={personas}
+                                style={[CreateReservaStyles.input, enviado && errores.personas ? CreateReservaStyles.inputError : null]}
+                                onValueChange={(itemValue) => setPersonas(itemValue)}
+                            >
+                                {[...Array(10)].map((_, i) => (
+                                    <Picker.Item key={i + 1} label={`${i + 1}`} value={`${i + 1}`} />
+                                ))}
+                            </Picker>
+                            {enviado && errores.personas && <Text style={CreateReservaStyles.errorText}>{errores.personas}</Text>}
+                        </View>
+                        <TouchableOpacity style={CreateReservaStyles.btnMain} onPress={handleCreateReserva}>
+                            <Text style={CreateReservaStyles.btntxt}>Añadir Reserva</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </ScrollView>
         </View>
     );
 };

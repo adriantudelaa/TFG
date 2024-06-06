@@ -1,15 +1,14 @@
-import { Router } from "express"
-import { getReservas } from "../controllers/reservas.controlers.js";
-import { postReservas } from "../controllers/reservas.controlers.js";
+import { Router } from "express";
+import { verifyToken } from "../../middlewares/auth.js";
+import { getReservas, getReservasByUser, getReservasByAdmin, postReservas, putReservas, deleteReservaByAdmin, getUserReservations } from "../controllers/reservas.controllers.js";
 
-const router = Router()
+const router = Router();
 
-router.get("/reservas", getReservas);
+router.get('/reservas', verifyToken, getReservas);
+router.post('/reservas/user', verifyToken, getReservasByUser);
+router.post('/reservas', verifyToken, postReservas);
+router.put('/reservas', verifyToken, putReservas);
+router.delete('/reservas/admin', verifyToken, deleteReservaByAdmin);
+router.get('/reservas/user', verifyToken, getUserReservations);
 
-router.post("/reservas", postReservas);
-
-//router.put("/reservas", putReservas);
-
-//router.delete("/reservas", deleteReservas);
-
-export default router
+export default router;

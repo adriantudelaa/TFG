@@ -1,62 +1,154 @@
 import React, { useState } from "react";
-import { Text, TouchableOpacity, Image, View } from "react-native";
+import { Text, TouchableOpacity, Image, View, TextInput, Modal, ActivityIndicator } from "react-native";
+import { ScrollView } from "react-native-gesture-handler";
 import { StatusBar } from "expo-status-bar";
-import { loginStyles } from "@styles/styles.js";
-import MyTextInput from "@components/MyTextInput.js";
-import color from "@styles/colors.js";
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { loginStyles, ModalLoginAdminStyles } from "@styles/styles.js";
+import colors from "@styles/colors.js";
+import CustomAlert from '@components/CustomAlert.js';
 
-// Componente funcional LoginScreenAdmins
 const LoginScreenAdmins = ({ navigation }) => {
-    // Estado para controlar la visibilidad de la contraseña
     const [icHidePassword, setIcHidePassword] = useState(true);
+    const [dni, setDni] = useState('');
+    const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertTitle, setAlertTitle] = useState('');
+    const [alertMessage, setAlertMessage] = useState('');
+    const [modalVisible, setModalVisible] = useState(false);
+    const [adminDni, setAdminDni] = useState('');
+
+    const loginAdmin = async (user_dni, user_pswrd) => {
+        setLoading(true);
+        try {
+            const response = await axios.post('https://musemur-production.up.railway.app/api/AdminLogin', {
+                user_dni, user_pswrd
+            });
+
+            if (response.data.token) {
+                await AsyncStorage.setItem('authToken', response.data.token);
+                await AsyncStorage.setItem('userRole', '1');
+                navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'AppAdmin' }],
+                });
+            } else {
+                throw new Error('Token de autenticación no recibido');
+            }
+        } catch (error) {
+            handleAlert('Error', error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleLogin = () => {
+        if (!dni || !password) {
+            handleAlert('Error', 'Se requiere DNI y contraseña');
+            return;
+        }
+        loginAdmin(dni, password);
+    };
+
+    const handleAdminRegistration = async () => {
+        if (!adminDni) {
+            handleAlert('Error', 'Se requiere DNI');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const response = await axios.post('https://musemur-production.up.railway.app/api/VerifyAdminDni', {
+                user_dni: adminDni
+            });
+
+            if (response.status === 200) {
+                setModalVisible(false);
+                navigation.navigate('RegisterAdmin');
+            } else {
+                throw new Error('Error al verificar DNI');
+            }
+        } catch (error) {
+            handleAlert('Error', error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleAlert = (title, message) => {
+        setAlertTitle(title);
+        setAlertMessage(message);
+        setAlertVisible(true);
+    };
+
+    const handleAlertConfirm = () => {
+        setAlertVisible(false);
+    };
 
     return (
         <View style={loginStyles.container}>
-            <StatusBar translucent={true} />
-            {/* Barra de estado translúcida */}
-            
-            {/* Logo del museo */}
-            <View style={loginStyles.logo}>
-                <Image source={require('@assets/icon.png')} style={{ height: 150, width: 150 }} />
-            </View>
-            
-            {/* Título de la pantalla */}
-            <View>
-                <Text style={loginStyles.txtTitle}>ACCESO ADMINISTRADORES</Text>
-            </View>
-            
-            {/* Campo de entrada para NIF */}
-            <MyTextInput 
-                keyboardType='default' 
-                placeholder='NIF' 
-                image='person' 
-            />
-            
-            {/* Campo de entrada para contraseña con opción de mostrar/ocultar */}
-            <MyTextInput 
-                keyboardType={null} 
-                placeholder='Contraseña' 
-                image='lock' 
-                bolGone={true} 
-                secureTextEntry={icHidePassword}
-                onPress={() => setIcHidePassword(!icHidePassword)} 
-            />
-            
-            {/* Botón para iniciar sesión */}
-            <View style={loginStyles.containerBtns}>
-                <View style={loginStyles.btnMainRegist}>
-                    <TouchableOpacity onPress={() => navigation.navigate('AppAdmin')}>
-                        <Text style={loginStyles.btntxt}>Iniciar Sesión</Text>
-                    </TouchableOpacity>
+            <StatusBar style="auto" />
+            <ScrollView contentContainerStyle={loginStyles.containerScroll}>
+                <View style={loginStyles.logo}>
+                    <Image source={require('@assets/icon.png')} style={{ height: 200, width: 200 }} />
                 </View>
-            </View>
-            
-            {/* Texto informativo para registro de administradores */}
-            <View>
-                <Text style={{ padding: 5, color: color.BLACKSECONDARY, fontSize: 9 }}>
-                    Para registrarse como Administrador contacte con el responsable del Museo
-                </Text>
-            </View>
+                <View style={loginStyles.card}>
+                    <View style={loginStyles.cardHeader}>
+                        <Text style={loginStyles.cardTitle}>Iniciar sesión</Text>
+                        <Text style={loginStyles.cardDescription}>Administradores</Text>
+                    </View>
+                    <View style={loginStyles.cardContent}>
+                        <View style={loginStyles.inputGroup}>
+                            <Text style={loginStyles.label}>NIF</Text>
+                            <TextInput
+                                style={loginStyles.input}
+                                keyboardType='default'
+                                placeholder='NIF'
+                                placeholderTextColor="#888"
+                                value={dni}
+                                onChangeText={setDni}
+                            />
+                        </View>
+                        <View style={loginStyles.inputGroup}>
+                            <Text style={loginStyles.label}>Contraseña</Text>
+                            <TextInput
+                                style={loginStyles.input}
+                                placeholder='Contraseña'
+                                secureTextEntry={icHidePassword}
+                                placeholderTextColor="#888"
+                                value={password}
+                                onChangeText={setPassword}
+                            />
+                            <TouchableOpacity onPress={() => setIcHidePassword(!icHidePassword)}>
+                                <Text style={loginStyles.togglePassword}>{icHidePassword ? "Mostrar" : "Ocultar"}</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                    <View style={loginStyles.cardFooter}>
+                        <TouchableOpacity style={loginStyles.btnMain} onPress={handleLogin}>
+                            <Text style={loginStyles.btntxt}>Iniciar Sesión</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </ScrollView>
+
+            {loading && (
+                <Modal transparent={true} animationType="none" visible={loading}>
+                    <View style={ModalLoginAdminStyles.modalBackground}>
+                        <View style={ModalLoginAdminStyles.activityIndicatorWrapper}>
+                            <ActivityIndicator size="large" color={colors.PRIMARYCOLOR} />
+                        </View>
+                    </View>
+                </Modal>
+            )}
+
+            <CustomAlert
+                visible={alertVisible}
+                title={alertTitle}
+                message={alertMessage}
+                onConfirm={handleAlertConfirm}
+            />
         </View>
     );
 };

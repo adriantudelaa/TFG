@@ -1,24 +1,20 @@
-import { Router } from "express"
-import {
-seeUsers,
-createUser,
-updateUserData,
-updateUserPswrd,
-deleteUser,
-loginUser
-} from "../controllers/usuarios.controller.js";
+import { Router } from "express";
+import { seeUsers, createUser, createAdmin, updateUserData, updateUserPswrd, deleteUser, loginUser, loginAdmin, resetPassword, verifyAdminDni, getUserProfile, getAdminProfile } from "../controllers/usuarios.controller.js";
+import { verifyToken } from '../../middlewares/auth.js';
 
-const router = Router()
+const router = Router();
 
-router.get("/usuarios", seeUsers);
+router.get("/User", verifyToken, seeUsers);S
+router.post("/User", createUser);
+router.post("/Admin", createAdmin);
+router.put("/UserData", verifyToken, updateUserData);
+router.put("/UserPswrd", verifyToken, updateUserPswrd);
+router.delete("/User", verifyToken, deleteUser);
+router.post('/Userlogin', loginUser);
+router.post('/AdminLogin', loginAdmin);
+router.post('/ResetPassword', resetPassword);
+router.post('/VerifyAdminDni', verifyAdminDni);
+router.get('/UserProfile', verifyToken, getUserProfile);
+router.get('/AdminProfile', verifyToken, getAdminProfile);
 
-router.post("/usuarios", createUser);
-
-router.put("/usuariosData", updateUserData);
-
-router.put("/usuariosPswrd", updateUserPswrd);
-
-router.delete("/usuarios", deleteUser);
-
-router.post('/login', loginUser);
-export default router
+export default router;

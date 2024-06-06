@@ -1,18 +1,16 @@
-import { Router } from "express"
-import {getMuseosCity, getMuseos, getMuseo, postMuseos} from "../controllers/museos.controllers.js"
+import { Router } from "express";
+import { getMuseosCity, getMuseos, getMuseo, putMuseos, deleteMuseo, addMuseo } from "../controllers/museos.controllers.js";
 
-const router = Router()
-
-router.get("/museosCity" , getMuseosCity);
-
-router.get("/museosName", getMuseo);
+const router = Router();
 
 router.get("/museos", getMuseos);
 
-router.post("/museos", postMuseos);
+router.post("/museosName", getMuseo);
 
-//router.put("/museos", putMuseos);
+router.put("/museos", putMuseos);
 
-//router.delete("/museos", deleteMuseos);
+router.delete("/museos", deleteMuseo);
 
-export default router
+router.post("/addMuseo", addMuseo);
+
+export default router;
