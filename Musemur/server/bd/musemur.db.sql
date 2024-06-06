@@ -1,86 +1,82 @@
-drop database if exists musemur;
-create database musemur;
-use musemur;
+DROP DATABASE IF EXISTS musemur;
+CREATE DATABASE musemur;
+USE musemur;
 
-drop table if exists usuarios;
+DROP TABLE IF EXISTS usuarios;
 
-create table usuarios (
-id_user INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, 
-user_first_name varchar(30)not null,
-user_surname varchar(40) not null,
-username varchar(255) not null,
-user_phone int(9),
-user_email varchar(50),
-user_dni varchar(9) not null unique,
-user_pswrd varchar(20) not null check(length(user_pswrd)>=8 and
-										user_pswrd regexp '[0-9]' and
-										user_pswrd regexp '[A-Z]' and
-										user_pswrd regexp '[a-z]'),
-user_rol boolean);
-
-drop table if exists museos;
-
-create table museos (
-id_museo INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-museum_name varchar(30),
-museum_city varchar(30),
-museum_loc varchar(100),
-museum_desc varchar(200),
-museum_hour varchar(10),
-museum_img blob
+CREATE TABLE usuarios (
+    id_user INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_first_name VARCHAR(30) NOT NULL,
+    user_surname VARCHAR(40) NOT NULL,
+    username VARCHAR(255) NOT NULL,
+    user_phone INT(9),
+    user_email VARCHAR(50),
+    user_dni VARCHAR(9) NOT NULL UNIQUE,
+    user_pswrd VARCHAR(20) NOT NULL CHECK(
+        LENGTH(user_pswrd)>=8 AND
+        user_pswrd REGEXP '[0-9]' AND
+        user_pswrd REGEXP '[A-Z]' AND
+        user_pswrd REGEXP '[a-z]'
+    ),
+    user_rol TINYINT(1)
 );
 
-drop table if exists reservas;
+DROP TABLE IF EXISTS museos;
 
-create table reservas (
-id_reserva INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-id_user INT UNSIGNED,
-id_museo INT UNSIGNED,
-reserva_date date,
-reserva_hour time,
-reserva_people int(20),
-FOREIGN KEY (id_user) REFERENCES usuarios(id_user) ON DELETE CASCADE,
-FOREIGN KEY (id_museo) REFERENCES museos(id_museo) ON DELETE CASCADE);
+CREATE TABLE museos (
+    id_museo INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    museum_name VARCHAR(30),
+    museum_city VARCHAR(30),
+    museum_loc VARCHAR(100),
+    museum_desc VARCHAR(200),
+    museum_hour VARCHAR(20)
+);
 
-drop table if exists chatbox;
+DROP TABLE IF EXISTS exposiciones;
 
-create table chatbox(
-id_que INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-id_museo int unsigned,
-cb_que varchar(50),
-cb_res varchar(50),
-FOREIGN KEY (id_museo) references museos(id_museo));
+CREATE TABLE exposiciones (
+    id_expo INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id_museo INT UNSIGNED,
+    expo_title VARCHAR(100),
+    expo_desc VARCHAR(255),
+    FOREIGN KEY (id_museo) REFERENCES museos(id_museo) ON DELETE CASCADE
+);
 
-drop table if exists admin;
+DROP TABLE IF EXISTS reservas;
 
-create table admin (
-id_admin INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-id_museo INT UNSIGNED,
-FOREIGN KEY (id_museo) references museos(id_museo) on delete cascade,
-FOREIGN KEY (id_admin) references usuarios(id_user)
-on delete cascade);
+CREATE TABLE reservas (
+    id_reserva INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id_user INT UNSIGNED,
+    id_museo INT UNSIGNED,
+    reserva_date DATE,
+    reserva_hour TIME,
+    reserva_people INT(20),
+    FOREIGN KEY (id_user) REFERENCES usuarios(id_user) ON DELETE CASCADE,
+    FOREIGN KEY (id_museo) REFERENCES museos(id_museo) ON DELETE CASCADE
+);
 
--- Crear un disparador para validar el rol del administrador
-DELIMITER $$
-CREATE TRIGGER check_admin_role 
-BEFORE INSERT ON admin
-FOR EACH ROW
-BEGIN
-    DECLARE userrol boolean;
-SELECT 
-    rol
-INTO userrol FROM
-    usuarios
-WHERE
-    id_user = NEW.id_admin;
-    IF userrol != 1 THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El administrador debe tener el rol de admin';
-    END IF;
-END$$
-DELIMITER ;
+DROP TABLE IF EXISTS chatbox;
 
--- Usuario Demo
-commit; 
-insert into usuarios values (0,'adrian', 'tudela', 'adriantudelaa', 654879856, 'adri40295@gmail.com', '24419446r', 'Demo2024',1);
-SELECT * from museos;
+CREATE TABLE chatbox (
+    id_que INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id_museo INT UNSIGNED,
+    cb_que VARCHAR(50),
+    cb_res VARCHAR(50),
+    FOREIGN KEY (id_museo) REFERENCES museos(id_museo)
+);
 
+-- Datos Demo
+COMMIT; 
+INSERT INTO usuarios VALUES (0, 'DemoAdmin', 'Musemur', 'DemoAdminMusemur', 654879856, 'demo@gmail.com', '12345678d', 'Demo2024', 1);
+INSERT INTO usuarios VALUES (0, 'DemoUser', 'Musemur', 'DemoUserMusemur', 654879856, 'demo@gmail.com', '87654321p', 'Demo2024', 0);
+
+INSERT INTO museos VALUES (0, 'Museo Salzillo', 'Murcia', 'Calle Salzillo', '', '10:00-22:00');
+INSERT INTO museos VALUES (0, 'Teatro Romano', 'Cartagena', 'Calle Romano', '', '10:00-22:00');
+
+INSERT INTO reservas VALUES (0, 1, 2, '2024-06-11', '09:00:00', 5);
+INSERT INTO reservas VALUES (0, 2, 1, '2024-06-12', '10:40:00', 6);
+
+INSERT INTO chatbox VALUES (0, 1, '¿Qué horarios tiene?', 'De 8:00 a.m. a 9:00 p.m');
+INSERT INTO chatbox VALUES (0, 2, '¿Qué horarios tiene?', 'De 10:00 a.m. a 10:00 p.m');
+
+INSERT INTO admin VALUES (1, 1);

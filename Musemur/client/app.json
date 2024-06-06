@@ -21,12 +21,17 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.adriantudelaa.musemur"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-    ]
+    "plugins": [],
+    "extra": {
+      "eas": {
+        "projectId": "3335bde3-8c7a-4d5e-8d40-a485f83839a6"
+      }
+    }
   }
 }
